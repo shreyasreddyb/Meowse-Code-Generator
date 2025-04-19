@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Meowse Code Generator</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            height: 100px;
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #ff6b6b;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff5252;
+        }
+        .output {
+            margin-top: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+            min-height: 50px;
+        }
+        .cat-container {
+            display: flex;
+            justify-content: center;
+            margin: 30px 0;
+            position: relative;
+            height: 200px;
+        }
+        .cat {
+            width: 200px;
+            height: 200px;
+            position: relative;
+        }
+        .cat-face {
+            width: 180px;
+            height: 180px;
+            background-color: #FFA500;
+            border-radius: 50%;
+            position: relative;
+        }
+        .cat-ear {
+            width: 0;
+            height: 0;
+            border-left: 30px solid transparent;
+            border-right: 30px solid transparent;
+            border-bottom: 60px solid #FFA500;
+            position: absolute;
+            top: -30px;
+        }
+        .cat-ear.left {
+            left: 30px;
+            transform: rotate(-20deg);
+        }
+        .cat-ear.right {
+            right: 30px;
+            transform: rotate(20deg);
+        }
+        .cat-eye {
+            width: 40px;
+            height: 40px;
+            background-color: #fff;
+            border-radius: 50%;
+            position: absolute;
+            top: 70px;
+        }
+        .cat-eye.left {
+            left: 40px;
+        }
+        .cat-eye.right {
+            right: 40px;
+        }
+        .cat-pupil {
+            width: 20px;
+            height: 20px;
+            background-color: #000;
+            border-radius: 50%;
+            position: absolute;
+            top: 10px;
+            left: 10px;
+        }
+        .cat-nose {
+            width: 20px;
+            height: 10px;
+            background-color: #FF6B6B;
+            border-radius: 50%;
+            position: absolute;
+            top: 110px;
+            left: 80px;
+        }
+        .cat-mouth {
+            width: 80px;
+            height: 15px;
+            border-radius: 0 0 40px 40px;
+            border-bottom: 3px solid #333;
+            position: absolute;
+            top: 130px;
+            left: 50px;
+        }
+        .blinking .cat-pupil {
+            height: 2px;
+            top: 20px;
+        }
+        #play-pause {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 15px;
+        }
+        .morse-display {
+            font-family: monospace;
+            font-size: 18px;
+            margin-top: 10px;
+            letter-spacing: 2px;
+        }
+        .speed-control {
+            margin: 15px 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .speed-label {
+            min-width: 120px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🐱 Meowse Code Generator 🐈‍⬛</h1>
+        
+        <div>
+            <label for="text-input">Enter text to convert to Meowse Code:</label>
+            <textarea id="text-input" placeholder="Type your message here...">Hello World</textarea>
+        </div>
+        
+        <div class="speed-control">
+            <span class="speed-label">Meow Speed:</span>
+            <input type="range" id="speed-control" min="50" max="500" step="10" value="200">
+            <span id="speed-value">200ms</span>
+        </div>
+        
+        <button id="convert-btn">Convert to Meowse Code</button>
+        
+        <div id="play-pause">
+            <button id="play-btn">Play Meowse Code</button>
+            <button id="pause-btn" disabled>Pause</button>
+        </div>
+        
+        <div class="output">
+            <p><strong>Morse Code:</strong></p>
+            <div id="morse-output" class="morse-display"></div>
+        </div>
+        
+        <div class="cat-container">
+            <div class="cat">
+                <div class="cat-ear left"></div>
+                <div class="cat-ear right"></div>
+                <div class="cat-face">
+                    <div class="cat-eye left">
+                        <div class="cat-pupil"></div>
+                    </div>
+                    <div class="cat-eye right">
+                        <div class="cat-pupil"></div>
+                    </div>
+                    <div class="cat-nose"></div>
+                    <div class="cat-mouth"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Morse code dictionary
+        const morseCode = {
+            'A': '.-', 'B': '-...', 'C': '-.-.', 'D': '-..', 'E': '.', 'F': '..-.', 
+            'G': '--.', 'H': '....', 'I': '..', 'J': '.---', 'K': '-.-', 'L': '.-..', 
+            'M': '--', 'N': '-.', 'O': '---', 'P': '.--.', 'Q': '--.-', 'R': '.-.', 
+            'S': '...', 'T': '-', 'U': '..-', 'V': '...-', 'W': '.--', 'X': '-..-', 
+            'Y': '-.--', 'Z': '--..', '0': '-----', '1': '.----', '2': '..---', 
+            '3': '...--', '4': '....-', '5': '.....', '6': '-....', '7': '--...', 
+            '8': '---..', '9': '----.', '.': '.-.-.-', ',': '--..--', '?': '..--..',
+            "'": '.----.', '!': '-.-.--', '/': '-..-.', '(': '-.--.', ')': '-.--.-',
+            '&': '.-...', ':': '---...', ';': '-.-.-.', '=': '-...-', '+': '.-.-.',
+            '-': '-....-', '_': '..--.-', '"': '.-..-.', '$': '...-..-', '@': '.--.-.'
+        };
+
+        // Audio context and sounds
+        let audioContext;
+        let shortMeow, longMeow;
+        let isPlaying = false;
+        let currentTimeout;
+        let timeouts = [];
+
+        // Elements
+        const textInput = document.getElementById('text-input');
+        const convertBtn = document.getElementById('convert-btn');
+        const playBtn = document.getElementById('play-btn');
+        const pauseBtn = document.getElementById('pause-btn');
+        const morseOutput = document.getElementById('morse-output');
+        const cat = document.querySelector('.cat');
+        const speedControl = document.getElementById('speed-control');
+        const speedValue = document.getElementById('speed-value');
+
+        // Initialize audio
+        function initializeAudio() {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            
+            // Create short meow oscillator
+            shortMeow = (duration) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1200, audioContext.currentTime + duration * 0.8);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.05);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+            
+            // Create long meow oscillator
+            longMeow = (duration) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(600, audioContext.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + duration * 0.5);
+                oscillator.frequency.exponentialRampToValueAtTime(700, audioContext.currentTime + duration);
+                
+                gainNode.gain.setValueAtTime(0, audioContext.currentTime);
+                gainNode.gain.linearRampToValueAtTime(0.5, audioContext.currentTime + 0.1);
+                gainNode.gain.linearRampToValueAtTime(0.3, audioContext.currentTime + duration * 0.8);
+                gainNode.gain.linearRampToValueAtTime(0, audioContext.currentTime + duration);
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.start();
+                oscillator.stop(audioContext.currentTime + duration);
+            };
+        }
+
+        // Convert text to Morse code
+        function textToMorse(text) {
+            return text.toUpperCase().split('').map(char => {
+                if (char === ' ') return ' / ';
+                return morseCode[char] || char;
+            }).join(' ');
+        }
+
+        // Make the cat blink
+        function catBlink() {
+            cat.classList.add('blinking');
+            setTimeout(() => {
+                cat.classList.remove('blinking');
+            }, 150);
+        }
+
+        // Play Morse code with cat sounds
+        function playMorseCode(morse) {
+            if (!audioContext) {
+                initializeAudio();
+            }
+            
+            const unitTime = parseInt(speedControl.value);
+            const dotTime = unitTime / 1000; // Duration of a dot in seconds
+            const dashTime = dotTime * 3; // Duration of a dash (3x dot)
+            
+            isPlaying = true;
+            playBtn.disabled = true;
+            pauseBtn.disabled = false;
+            
+            let currentPosition = 0;
+            const characters = morse.split('');
+            
+            function playNextChar() {
+                if (!isPlaying || currentPosition >= characters.length) {
+                    isPlaying = false;
+                    playBtn.disabled = false;
+                    pauseBtn.disabled = true;
+                    return;
+                }
+                
+                const char = characters[currentPosition];
+                currentPosition++;
+                
+                if (char === '.') {
+                    shortMeow(dotTime);
+                    catBlink();
+                    currentTimeout = setTimeout(playNextChar, unitTime * 1.2);
+                } else if (char === '-') {
+                    longMeow(dashTime);
+                    catBlink();
+                    currentTimeout = setTimeout(playNextChar, unitTime * 3.2);
+                } else if (char === ' ') {
+                    // Space between letters (3 units)
+                    currentTimeout = setTimeout(playNextChar, unitTime * 3);
+                } else if (char === '/') {
+                    // Space between words (7 units)
+                    currentTimeout = setTimeout(playNextChar, unitTime * 7);
+                }
+                
+                timeouts.push(currentTimeout);
+            }
+            
+            playNextChar();
+        }
+
+        // Convert button click handler
+        convertBtn.addEventListener('click', () => {
+            const text = textInput.value;
+            const morse = textToMorse(text);
+            morseOutput.textContent = morse;
+        });
+
+        // Play button click handler
+        playBtn.addEventListener('click', () => {
+            const morse = morseOutput.textContent;
+            if (morse) {
+                playMorseCode(morse);
+            }
+        });
+
+        // Pause button click handler
+        pauseBtn.addEventListener('click', () => {
+            isPlaying = false;
+            playBtn.disabled = false;
+            pauseBtn.disabled = true;
+            timeouts.forEach(timeout => clearTimeout(timeout));
+            timeouts = [];
+        });
+
+        // Speed control
+        speedControl.addEventListener('input', () => {
+            speedValue.textContent = `${speedControl.value}ms`;
+        });
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const text = textInput.value;
+            const morse = textToMorse(text);
+            morseOutput.textContent = morse;
+        });
+    </script>
+</body>
+</html>
